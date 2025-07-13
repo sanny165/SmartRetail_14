@@ -12,8 +12,7 @@ import BarcodeScanner from './pages/BarcodeScanner';
 import Payment from './pages/Payment';
 import { CartProvider } from './context/CartContext';
 import { ListProvider } from './context/ListContext';
-import VoiceAssistant from './components/VoiceAssistant';
-
+import JarvisAssistant from "./components/JarvisAssistant";
 
 function App() {
   return (
@@ -36,7 +35,7 @@ function App() {
             </main>
 
             {/* Voice Assistant added below */}
-            <VoiceAssistant />
+            <JarvisAssistant />
 
             <Footer />
           </div>
