@@ -1,12 +1,11 @@
 from flask import Flask, request, render_template, jsonify
-from jarvis_core import ask_jarvis_multilingual, direct_translate
 from flask_cors import CORS
+from jarvis_core import ask_jarvis_multilingual, direct_translate
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for frontend communication (localhost:5173 etc.)
 
-app = Flask(__name__)
-CORS(app)
-# Route to render the main HTML page
+# Optional: Main page route if using templates
 @app.route("/")
 def index():
     return render_template("index.html")
