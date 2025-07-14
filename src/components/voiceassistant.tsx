@@ -48,6 +48,7 @@ const VoiceAssistant: React.FC = () => {
     "raku": "put",
     "hatado": "remove",
     "cart may": "in cart",
+    "khali karo":"clear cart"
   };
   for (const [key, val] of Object.entries(map)) {
     text = text.replace(new RegExp(key, 'g'), val);
