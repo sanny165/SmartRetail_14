@@ -13,11 +13,14 @@ import Payment from './pages/Payment';
 import { CartProvider } from './context/CartContext';
 import { ListProvider } from './context/ListContext';
 import JarvisAssistant from "./components/JarvisAssistant";
+import VoiceAssistant from "./components/voiceassistant";
+import {ProductProvider} from "./context/ProductContext"
 
 function App() {
   return (
     <CartProvider>
       <ListProvider>
+        <ProductProvider>
         <Router>
           <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -28,18 +31,19 @@ function App() {
                 <Route path="/lists" element={<Lists />} />
                 <Route path="/inshop" element={<InShop />} />
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/product-info" element={<ProductInfo />} />
+                <Route path="/product-info" element={<JarvisAssistant />} />
                 <Route path="/barcode-scanner" element={<BarcodeScanner />} />
                 <Route path="/payment" element={<Payment />} />
               </Routes>
             </main>
 
-            {/* Voice Assistant added below */}
-            <JarvisAssistant />
+            <VoiceAssistant />
+            
 
             <Footer />
           </div>
         </Router>
+        </ProductProvider>
       </ListProvider>
     </CartProvider>
   );

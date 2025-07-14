@@ -207,11 +207,7 @@ const BarcodeScanner = () => {
               <span>Simulate Scan</span>
             </button>
 
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-              <p className="text-xs text-yellow-800">
-                🔧 Integration Space: Replace with actual barcode scanner (ZXing-js, QuaggaJS, etc.)
-              </p>
-            </div>
+            
           </div>
         </div>
 

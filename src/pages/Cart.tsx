@@ -1,33 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, MessageCircle, Send } from 'lucide-react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
+// Extend the Window interface to include botpressWebChat
+declare global {
+  interface Window {
+    botpressWebChat?: any;
+  }
+}
+
 const Cart = () => {
+  // All hooks must be inside the component function
+  const [botpressReady, setBotpressReady] = useState(false);
   const { cartItems, updateQuantity, removeFromCart, clearCart, sendToCounter } = useCart();
-  const [showChatbot, setShowChatbot] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, text: 'Hello! How can I help you with your order today?', isBot: true }
-  ]);
-  const [newMessage, setNewMessage] = useState('');
   const navigate = useNavigate();
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setChatMessages(prev => [
-        ...prev,
-        { id: prev.length + 1, text: newMessage, isBot: false },
-        { id: prev.length + 2, text: 'Thank you for your message! Our AI assistant is processing your request...', isBot: true }
-      ]);
-      setNewMessage('');
+  // Combined and optimized useEffect hooks
+  useEffect(() => {
+    const checkBotpress = () => {
+      if (window.botpressWebChat) {
+        setBotpressReady(true);
+        return true;
+      }
+      return false;
+    };
+
+    const sendCartData = () => {
+      if (window.botpressWebChat && cartItems.length > 0) {
+        console.log('✅ Sending cart data to Botpress:', cartItems);
+        
+        window.botpressWebChat.sendEvent({
+          type: 'cart-update',
+          channel: 'web',
+          payload: {
+            cartItems: cartItems.map(item => ({
+              id: item.id,
+              name: item.name,
+              category: item.category,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            }))
+          }
+        });
+      }
+    };
+
+    // Initial check and send
+    if (checkBotpress()) {
+      sendCartData();
+    } else {
+      // Periodic check if not ready
+      const interval = setInterval(() => {
+        if (checkBotpress()) {
+          clearInterval(interval);
+          sendCartData();
+        }
+      }, 500);
+      
+      return () => clearInterval(interval);
     }
-  };
+  }, [cartItems]); // Only cartItems as dependency
 
   const handleSendToCounter = () => {
     sendToCounter();
-    // Simulate verification process
     setTimeout(() => {
       alert('List verified! Proceeding to payment...');
       navigate('/payment');
@@ -55,17 +94,9 @@ const Cart = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-        <button
-          onClick={() => setShowChatbot(!showChatbot)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>Chat Support</span>
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-md">
             {cartItems.map((item) => (
@@ -106,9 +137,7 @@ const Cart = () => {
           </div>
         </div>
 
-        {/* Order Summary & Chatbot */}
         <div className="space-y-6">
-          {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
             <div className="space-y-2 mb-4">
@@ -142,80 +171,10 @@ const Cart = () => {
               </button>
             </div>
           </div>
-
-          {/* Chatbot Integration Space */}
-          {showChatbot && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4">Customer Support</h3>
-              
-              {/* 
-                BOTPRESS INTEGRATION SPACE
-                Replace this section with Botpress webchat widget
-                Example Botpress integration:
-                
-                <script src="https://cdn.botpress.cloud/webchat/v1/inject.js"></script>
-                <script>
-                  window.botpressWebChat.init({
-                    composerPlaceholder: "Chat with our assistant...",
-                    botConversationDescription: "This chatbot helps with your shopping",
-                    botId: "your-bot-id-here",
-                    hostUrl: "https://cdn.botpress.cloud/webchat/v1",
-                    messagingUrl: "https://messaging.botpress.cloud",
-                    clientId: "your-client-id-here",
-                    webhookId: "your-webhook-id-here",
-                    lazySocket: true,
-                    themeName: "prism",
-                    frontendVersion: "v1"
-                  });
-                </script>
-              */}
-              
-              <div className="border rounded-lg h-64 flex flex-col">
-                <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                  {chatMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-                    >
-                      <div
-                        className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
-                          message.isBot
-                            ? 'bg-gray-100 text-gray-800'
-                            : 'bg-blue-600 text-white'
-                        }`}
-                      >
-                        {message.text}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t p-4">
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Type your message..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                💡 Integration Space: Replace with Botpress webchat widget
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
+    
   );
 };
 
